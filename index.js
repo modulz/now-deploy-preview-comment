@@ -33,7 +33,9 @@ Toolkit.run(async tools => {
 
   const strategies = [
     fetchLastDeployment({ "meta-commit": actionConfig.deployedCommit }),
-    fetchLastDeployment({ "meta-branch": actionConfig.deployedBranch })
+    fetchLastDeployment({ "meta-branch": actionConfig.deployedBranch }),
+    fetchLastDeployment({ limit: 1 }),
+    fetchLastDeployment({ projectId: actionConfig.projectName })
   ];
 
   let deploymentUrl;
