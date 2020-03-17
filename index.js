@@ -29,23 +29,14 @@ Toolkit.run(async tools => {
       });
   }
 
-  let deploymentUrl;
-  let deploymentCommit;
-  let deploymentProjectName;
-
   const deployment = await fetchLastDeployment();
-  if (deployment) {
-    deploymentProjectName = deployment.name;
-    deploymentUrl = deployment.url;
-    deploymentCommit = deployment.meta.commit;
-  }
 
   const { data: comments } = await tools.github.issues.listComments({
     ...tools.context.repo,
     issue_number: tools.context.payload.pull_request.number,
   });
 
-  const commentFirstSentence = `Deploy preview for _${deploymentProjectName}_ ready!`;
+  const commentFirstSentence = `Deploy preview for _${deployment.name}_ ready!`;
   const zeitPreviewURLComment = comments.find(comment =>
     comment.body.startsWith(commentFirstSentence)
   );
@@ -53,9 +44,9 @@ Toolkit.run(async tools => {
   const commentBody = stripIndents`
     ${commentFirstSentence}
 
-    Built with commit ${deploymentCommit}
+    Built with commit ${deployment.meta.commit}
 
-    https://${deploymentUrl}
+    https://${deployment.url}
   `;
 
   if (zeitPreviewURLComment) {
