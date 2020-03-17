@@ -7,7 +7,7 @@ const actionConfig = {
   teamId: process.env.ZEIT_TEAMID,
   deployedCommit: process.env.GITHUB_SHA,
   deployedBranch: process.env.GITHUB_REF,
-  projectName: process.env.PROJECT_ID
+  projectId: process.env.PROJECT_ID
 };
 
 if (!actionConfig.zeitToken) {
