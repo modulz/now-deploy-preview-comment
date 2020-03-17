@@ -7,7 +7,7 @@ const actionConfig = {
   teamId: process.env.ZEIT_TEAMID,
   deployedCommit: process.env.GITHUB_SHA,
   deployedBranch: process.env.GITHUB_REF,
-  projectName: process.env.PROJECT_NAME
+  projectId: process.env.PROJECT_ID
 };
 
 if (!actionConfig.zeitToken) {
@@ -25,17 +25,14 @@ Toolkit.run(async tools => {
   function fetchLastDeployment(params) {
     return zeitAPIClient
       .get("/v5/now/deployments", { params })
-      .then(
-        ({ data }) =>
-          data.deployments.filter(d => d.name === actionConfig.projectName)[0]
-      );
+      .then(({ data }) => data.deployments[0]);
   }
 
   const strategies = [
     fetchLastDeployment({ "meta-commit": actionConfig.deployedCommit }),
     fetchLastDeployment({ "meta-branch": actionConfig.deployedBranch }),
-    fetchLastDeployment({ limit: 1 }),
-    fetchLastDeployment({ projectId: actionConfig.projectName })
+    fetchLastDeployment({ "projectId": actionConfig.projectId }),
+    fetchLastDeployment({ limit: 1 })
   ];
 
   let deploymentUrl;
