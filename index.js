@@ -36,7 +36,7 @@ Toolkit.run(async tools => {
     issue_number: tools.context.payload.pull_request.number,
   });
 
-  const commentFirstSentence = `BAHHHH preview for _${deployment.name}_ ready!`;
+  const commentFirstSentence = `Deploy preview for _${deployment.name}_ ready!`;
   const zeitPreviewURLComment = comments.find(comment =>
     comment.body.startsWith(commentFirstSentence)
   );
