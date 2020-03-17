@@ -2,23 +2,23 @@ const axios = require('axios');
 const { stripIndents } = require('common-tags');
 const { Toolkit } = require('actions-toolkit');
 
-const actionConfig = {
-  zeitToken: process.env.ZEIT_TOKEN,
-  teamId: process.env.ZEIT_TEAMID,
-  projectName: process.env.PROJECT_NAME,
-};
-
-if (!actionConfig.zeitToken) {
-  throw new Error(`ZEIT_TOKEN environment variable is not set`);
-}
-
-const zeitAPIClient = axios.create({
-  baseURL: 'https://api.zeit.co',
-  headers: { Authorization: `Bearer ${actionConfig.zeitToken}` },
-});
-
 // Run your GitHub Action!
 Toolkit.run(async tools => {
+  const actionConfig = {
+    zeitToken: process.env.ZEIT_TOKEN,
+    teamId: process.env.ZEIT_TEAMID,
+    projectName: process.env.PROJECT_NAME,
+  };
+
+  if (!actionConfig.zeitToken) {
+    throw new Error(`ZEIT_TOKEN environment variable is not set`);
+  }
+
+  const zeitAPIClient = axios.create({
+    baseURL: 'https://api.zeit.co',
+    headers: { Authorization: `Bearer ${actionConfig.zeitToken}` },
+  });
+
   function fetchLastDeployment() {
     return zeitAPIClient
       .get(`/v5/now/deployments?teamId=${actionConfig.teamId}`)
