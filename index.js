@@ -1,12 +1,13 @@
-const axios = require('axios');
-const { stripIndents } = require('common-tags');
-const { Toolkit } = require('actions-toolkit');
+const axios = require("axios");
+const { stripIndents } = require("common-tags");
+const { Toolkit } = require("actions-toolkit");
 
 const actionConfig = {
   zeitToken: process.env.ZEIT_TOKEN,
   teamId: process.env.ZEIT_TEAMID,
   deployedCommit: process.env.GITHUB_SHA,
   deployedBranch: process.env.GITHUB_REF,
+  projectName: process.env.PROJECT_ID
 };
 
 if (!actionConfig.zeitToken) {
@@ -14,23 +15,23 @@ if (!actionConfig.zeitToken) {
 }
 
 const zeitAPIClient = axios.create({
-  baseURL: 'https://api.zeit.co',
+  baseURL: "https://api.zeit.co",
   headers: { Authorization: `Bearer ${actionConfig.zeitToken}` },
-  params: { teamId: actionConfig.teamId },
+  params: { teamId: actionConfig.teamId, projectId: actionConfig.projectId }
 });
 
 // Run your GitHub Action!
 Toolkit.run(async tools => {
   function fetchLastDeployment(params) {
     return zeitAPIClient
-      .get('/v4/now/deployments', { params })
+      .get("/v5/now/deployments", { params })
       .then(({ data }) => data.deployments[0]);
   }
 
   const strategies = [
-    fetchLastDeployment({ 'meta-commit': actionConfig.deployedCommit }),
-    fetchLastDeployment({ 'meta-branch': actionConfig.deployedBranch }),
-    fetchLastDeployment({ limit: 1 }),
+    fetchLastDeployment({ "meta-commit": actionConfig.deployedCommit }),
+    fetchLastDeployment({ "meta-branch": actionConfig.deployedBranch }),
+    fetchLastDeployment({ limit: 1 })
   ];
 
   let deploymentUrl;
@@ -50,7 +51,7 @@ Toolkit.run(async tools => {
 
   const { data: comments } = await tools.github.issues.listComments({
     ...tools.context.repo,
-    issue_number: tools.context.payload.pull_request.number,
+    issue_number: tools.context.payload.pull_request.number
   });
 
   const commentFirstSentence = `Deploy preview for _${deploymentProjectName}_ ready!`;
@@ -70,13 +71,13 @@ Toolkit.run(async tools => {
     await tools.github.issues.updateComment({
       ...tools.context.repo,
       comment_id: zeitPreviewURLComment.id,
-      body: commentBody,
+      body: commentBody
     });
   } else {
     await tools.github.issues.createComment({
       ...tools.context.repo,
       issue_number: tools.context.payload.pull_request.number,
-      body: commentBody,
+      body: commentBody
     });
   }
 });

@@ -12,6 +12,7 @@
 
 * `ZEIT_TOKEN` => The token used for deployment and query the zeit.co API
 * `ZEIT_TEAMID` => This is required if your deployment is made on team project.
+* `PROJECT_ID` => This is required to ensure deployments are only referenced for a specific project.
 * `meta-commit` => Add the SHA commit to the meta of the deployment (`-m commit=${GITHUB_SHA}`)
 * `meta-branch` => Add the ref/branch to the meta of the deployment (`-m commit=${GITHUB_REF}`)
 
