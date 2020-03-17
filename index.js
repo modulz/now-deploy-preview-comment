@@ -7,7 +7,7 @@ const actionConfig = {
   teamId: process.env.ZEIT_TEAMID,
   deployedCommit: process.env.GITHUB_SHA,
   deployedBranch: process.env.GITHUB_REF,
-  projectId: process.env.PROJECT_ID
+  projectName: process.env.PROJECT_NAME
 };
 
 if (!actionConfig.zeitToken) {
@@ -17,7 +17,7 @@ if (!actionConfig.zeitToken) {
 const zeitAPIClient = axios.create({
   baseURL: "https://api.zeit.co",
   headers: { Authorization: `Bearer ${actionConfig.zeitToken}` },
-  params: { teamId: actionConfig.teamId, projectId: actionConfig.projectId }
+  params: { teamId: actionConfig.teamId }
 });
 
 // Run your GitHub Action!
@@ -25,7 +25,10 @@ Toolkit.run(async tools => {
   function fetchLastDeployment(params) {
     return zeitAPIClient
       .get("/v5/now/deployments", { params })
-      .then(({ data }) => data.deployments[0]);
+      .then(
+        ({ data }) =>
+          data.deployments.filter(d => d.name === actionConfig.projectName)[0]
+      );
   }
 
   const strategies = [
