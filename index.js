@@ -1,13 +1,11 @@
-const axios = require("axios");
-const { stripIndents } = require("common-tags");
-const { Toolkit } = require("actions-toolkit");
+const axios = require('axios');
+const { stripIndents } = require('common-tags');
+const { Toolkit } = require('actions-toolkit');
 
 const actionConfig = {
   zeitToken: process.env.ZEIT_TOKEN,
   teamId: process.env.ZEIT_TEAMID,
-  deployedCommit: process.env.GITHUB_SHA,
-  deployedBranch: process.env.GITHUB_REF,
-  projectId: process.env.PROJECT_ID
+  projectName: process.env.PROJECT_NAME,
 };
 
 if (!actionConfig.zeitToken) {
@@ -15,44 +13,36 @@ if (!actionConfig.zeitToken) {
 }
 
 const zeitAPIClient = axios.create({
-  baseURL: "https://api.zeit.co",
+  baseURL: 'https://api.zeit.co',
   headers: { Authorization: `Bearer ${actionConfig.zeitToken}` },
-  params: { teamId: actionConfig.teamId }
 });
 
 // Run your GitHub Action!
 Toolkit.run(async tools => {
-  function fetchLastDeployment(params) {
+  function fetchLastDeployment() {
     return zeitAPIClient
-      .get("/v5/now/deployments", { params })
-      .then(({ data }) => data.deployments[0]);
+      .get(`/v5/now/deployments?teamId=${actionConfig.teamId}`)
+      .then(({ data }) => {
+        return data.deployments.filter(
+          d => d.name === actionConfig.projectName
+        )[0];
+      });
   }
-
-  const strategies = [
-    fetchLastDeployment({ "meta-commit": actionConfig.deployedCommit }),
-    fetchLastDeployment({ "meta-branch": actionConfig.deployedBranch }),
-    fetchLastDeployment({ "projectId": actionConfig.projectId }),
-    fetchLastDeployment({ limit: 1 })
-  ];
 
   let deploymentUrl;
   let deploymentCommit;
   let deploymentProjectName;
 
-  for (const strategy of strategies) {
-    const deployment = await strategy();
-
-    if (deployment) {
-      deploymentProjectName = deployment.name;
-      deploymentUrl = deployment.url;
-      deploymentCommit = deployment.meta.commit;
-      break;
-    }
+  const deployment = await fetchLastDeployment();
+  if (deployment) {
+    deploymentProjectName = deployment.name;
+    deploymentUrl = deployment.url;
+    deploymentCommit = deployment.meta.commit;
   }
 
   const { data: comments } = await tools.github.issues.listComments({
     ...tools.context.repo,
-    issue_number: tools.context.payload.pull_request.number
+    issue_number: tools.context.payload.pull_request.number,
   });
 
   const commentFirstSentence = `Deploy preview for _${deploymentProjectName}_ ready!`;
@@ -72,13 +62,13 @@ Toolkit.run(async tools => {
     await tools.github.issues.updateComment({
       ...tools.context.repo,
       comment_id: zeitPreviewURLComment.id,
-      body: commentBody
+      body: commentBody,
     });
   } else {
     await tools.github.issues.createComment({
       ...tools.context.repo,
       issue_number: tools.context.payload.pull_request.number,
-      body: commentBody
+      body: commentBody,
     });
   }
 });
